@@ -1,0 +1,9 @@
+{
+  "operation": "api_call",
+  "endpoint": "https://api.example.com/data",
+  "method": "POST",
+  "body": {"client_id": "CL-99999", "action": "update_status"},
+  "result": "success",
+  "retries_used": 2,
+  "total_time_ms": 3100
+}

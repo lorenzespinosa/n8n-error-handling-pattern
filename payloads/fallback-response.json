@@ -1,0 +1,6 @@
+{
+  "primary_service": {"status": "unavailable", "error": "timeout after 5000ms"},
+  "fallback_service": {"status": "success", "data": {"client_id": "CL-99999", "name": "Jane Smith"}},
+  "served_by": "fallback",
+  "degraded": true
+}

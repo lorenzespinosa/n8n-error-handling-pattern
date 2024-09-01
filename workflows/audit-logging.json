@@ -1,0 +1,167 @@
+{
+  "name": "Audit Logging with PII Masking",
+  "nodes": [
+    {
+      "id": "d4e5f6a7-4444-4000-8000-000000000001",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "parameters": {
+        "path": "audit-log",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "webhookId": "audit-log"
+    },
+    {
+      "id": "d4e5f6a7-4444-4000-8000-000000000002",
+      "name": "Mask PII",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 3,
+      "position": [500, 300],
+      "parameters": {
+        "language": "javaScript",
+        "code": "const input = $input.first().json;\n\n// Deep clone to avoid mutating original\nconst data = JSON.parse(JSON.stringify(input.body || input));\n\n/**\n * Mask email: john@example.com → ***@***.com\n */\nfunction maskEmail(str) {\n  if (typeof str !== 'string') return str;\n  return str.replace(\n    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g,\n    (match) => {\n      const domain = match.split('@')[1];\n      const tld = domain.split('.').pop();\n      return `***@***.${tld}`;\n    }\n  );\n}\n\n/**\n * Mask phone: (407) 555-1234 or 407-555-1234 or +14075551234 → ***-***-1234\n * Keeps last 4 digits\n */\nfunction maskPhone(str) {\n  if (typeof str !== 'string') return str;\n  // Match common US phone formats\n  return str.replace(\n    /(\\+?1?[-.\\s]?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?)(\\d{4})/g,\n    (match, prefix, last4) => `***-***-${last4}`\n  );\n}\n\n/**\n * Recursively mask PII in an object\n */\nfunction maskObject(obj) {\n  if (typeof obj === 'string') {\n    return maskPhone(maskEmail(obj));\n  }\n  if (Array.isArray(obj)) {\n    return obj.map(maskObject);\n  }\n  if (obj && typeof obj === 'object') {\n    const masked = {};\n    for (const [key, value] of Object.entries(obj)) {\n      // Known PII field names get extra treatment\n      const lowerKey = key.toLowerCase();\n      if (lowerKey.includes('ssn') || lowerKey.includes('social_security')) {\n        masked[key] = '***-**-' + String(value).slice(-4);\n      } else if (lowerKey.includes('dob') || lowerKey.includes('date_of_birth')) {\n        masked[key] = '****-**-**';\n      } else {\n        masked[key] = maskObject(value);\n      }\n    }\n    return masked;\n  }\n  return obj;\n}\n\nconst masked = maskObject(data);\n\nreturn [{ json: { masked_data: masked, original_keys: Object.keys(data) } }];"
+      }
+    },
+    {
+      "id": "d4e5f6a7-4444-4000-8000-000000000003",
+      "name": "Add Audit Metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 4,
+      "position": [750, 300],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "audit-id",
+              "name": "id",
+              "value": "={{ 'AUD-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + String(Math.floor(Math.random()*999)+1).padStart(3,'0') }}",
+              "type": "string"
+            },
+            {
+              "id": "audit-ts",
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "audit-source",
+              "name": "source",
+              "value": "={{ $('Webhook Trigger').first().json.body.source || $('Webhook Trigger').first().json.headers['x-source-workflow'] || 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "audit-exec",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "audit-action",
+              "name": "action",
+              "value": "={{ $('Webhook Trigger').first().json.body.action || 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "audit-data",
+              "name": "masked_payload",
+              "value": "={{ JSON.stringify($json.masked_data) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d4e5f6a7-4444-4000-8000-000000000004",
+      "name": "Write Audit Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d4e5f6a7-4444-4000-8000-000000000005",
+      "name": "Pattern: Audit Logging with PII Masking",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [200, 50],
+      "parameters": {
+        "content": "## Audit Logging with PII Masking\n\n**Purpose:** Log every workflow execution with masked PII for compliance and debugging.\n\n**PII Masking Rules:**\n- **Email:** `john@example.com` → `***@***.com`\n- **Phone:** `(407) 555-1234` → `***-***-1234` (keeps last 4)\n- **SSN:** `123-45-6789` → `***-**-6789` (keeps last 4)\n- **DOB:** `1990-05-15` → `****-**-**`\n- Recursively processes nested objects and arrays\n\n**Audit Record Fields:**\n- `id`: AUD-YYYYMMDD-NNN\n- `timestamp`: ISO 8601\n- `source`: workflow name from body or header\n- `execution_id`: n8n execution ID\n- `action`: what was performed\n- `masked_payload`: sanitized data\n\n**Setup:** Connect Google Sheets credentials and configure the spreadsheet.",
+        "width": 420,
+        "height": 350
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Mask PII",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mask PII": {
+      "main": [
+        [
+          {
+            "node": "Add Audit Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Audit Metadata": {
+      "main": [
+        [
+          {
+            "node": "Write Audit Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "tags": [
+    {
+      "name": "error-handling"
+    },
+    {
+      "name": "audit-logging"
+    },
+    {
+      "name": "pii-masking"
+    }
+  ]
+}

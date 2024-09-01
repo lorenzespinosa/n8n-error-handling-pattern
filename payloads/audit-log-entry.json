@@ -1,0 +1,13 @@
+{
+  "id": "AUD-20240815-001",
+  "timestamp": "2024-08-15T14:30:00Z",
+  "source": "client-intake-pipeline",
+  "execution_id": "exec_abc123",
+  "action": "create_matter",
+  "actor": "system",
+  "client_ref": "CL-99999",
+  "email_masked": "***@***.com",
+  "phone_masked": "***-***-5678",
+  "result": "success",
+  "duration_ms": 1250
+}

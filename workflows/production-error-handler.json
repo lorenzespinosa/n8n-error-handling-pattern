@@ -1,0 +1,244 @@
+{
+  "name": "Production Error Handler (Master)",
+  "nodes": [
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000001",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "parameters": {
+        "path": "production-handler",
+        "httpMethod": "POST",
+        "responseMode": "lastNode"
+      },
+      "webhookId": "production-handler"
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000002",
+      "name": "Execute: Retry with Backoff",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "workflowId": "={{ $env.RETRY_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000003",
+      "name": "Retry Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "operation": "equals",
+              "value2": "success"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000004",
+      "name": "Execute: Fallback Path",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1000, 450],
+      "parameters": {
+        "workflowId": "={{ $env.FALLBACK_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000005",
+      "name": "Execute: Dead Letter Queue",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1250, 550],
+      "parameters": {
+        "workflowId": "={{ $env.DEAD_LETTER_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000006",
+      "name": "Execute: Audit Log (Success)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1000, 200],
+      "parameters": {
+        "workflowId": "={{ $env.AUDIT_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000007",
+      "name": "Execute: Audit Log (Failure)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1250, 350],
+      "parameters": {
+        "workflowId": "={{ $env.AUDIT_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000008",
+      "name": "Build Success Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 3,
+      "position": [1250, 100],
+      "parameters": {
+        "language": "javaScript",
+        "code": "return [{\n  json: {\n    status: 'success',\n    message: 'Operation completed successfully via retry pattern.',\n    timestamp: new Date().toISOString(),\n    execution_id: $execution.id\n  }\n}];"
+      }
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000009",
+      "name": "Build Failure Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 3,
+      "position": [1500, 450],
+      "parameters": {
+        "language": "javaScript",
+        "code": "return [{\n  json: {\n    status: 'failed',\n    message: 'Operation failed after all retries and fallback. Routed to dead-letter queue.',\n    timestamp: new Date().toISOString(),\n    execution_id: $execution.id,\n    dead_letter: true,\n    fallback_attempted: true\n  }\n}];"
+      }
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000010",
+      "name": "Master Pattern: Production Error Handler",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [200, -50],
+      "parameters": {
+        "content": "## Production Error Handler (Master Workflow)\n\n**Purpose:** Orchestrates all 4 error handling patterns into one integrated system.\n\n**Flow:**\n1. **Webhook** receives the operation request\n2. **Retry with Backoff** attempts the operation (up to 3 retries)\n3. **Check result:**\n   - **Success path:** Log audit → return success response\n   - **Failure path:** Try fallback → log to dead-letter queue → log audit → return failure response\n4. **Audit logging** runs on BOTH paths (always)\n\n**Setup:**\nSet these environment variables in n8n:\n- `RETRY_WORKFLOW_ID` → ID of retry-with-backoff workflow\n- `FALLBACK_WORKFLOW_ID` → ID of fallback-path workflow\n- `DEAD_LETTER_WORKFLOW_ID` → ID of dead-letter-queue workflow\n- `AUDIT_WORKFLOW_ID` → ID of audit-logging workflow\n\nOr replace the expressions with hardcoded workflow IDs.",
+        "width": 450,
+        "height": 380
+      }
+    },
+    {
+      "id": "e5f6a7b8-5555-4000-8000-000000000011",
+      "name": "Flow Diagram",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [700, -50],
+      "parameters": {
+        "content": "## Flow Diagram\n\n```\nWebhook\n  │\n  ▼\nRetry with Backoff\n  │\n  ├─ SUCCESS ──► Audit Log ──► Success Response\n  │\n  └─ FAILURE\n       │\n       ▼\n     Fallback Path\n       │\n       ▼\n     Dead Letter Queue\n       │\n       ▼\n     Audit Log ──► Failure Response\n```\n\nEvery path logs an audit record. No silent failures.",
+        "width": 350,
+        "height": 280
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute: Retry with Backoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Retry with Backoff": {
+      "main": [
+        [
+          {
+            "node": "Retry Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Execute: Audit Log (Success)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute: Fallback Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Audit Log (Success)": {
+      "main": [
+        [
+          {
+            "node": "Build Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Fallback Path": {
+      "main": [
+        [
+          {
+            "node": "Execute: Dead Letter Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Dead Letter Queue": {
+      "main": [
+        [
+          {
+            "node": "Execute: Audit Log (Failure)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Audit Log (Failure)": {
+      "main": [
+        [
+          {
+            "node": "Build Failure Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "tags": [
+    {
+      "name": "error-handling"
+    },
+    {
+      "name": "production"
+    },
+    {
+      "name": "master-workflow"
+    }
+  ]
+}

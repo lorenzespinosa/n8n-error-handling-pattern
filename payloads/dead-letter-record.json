@@ -1,0 +1,11 @@
+{
+  "id": "DL-20240815-001",
+  "timestamp": "2024-08-15T14:30:00Z",
+  "source_workflow": "client-intake-pipeline",
+  "source_node": "CRM API Call",
+  "error_type": "HTTP_503",
+  "error_message": "Service Unavailable",
+  "original_payload": {"client_id": "CL-99999", "action": "create_matter"},
+  "retry_count": 3,
+  "status": "pending_review"
+}
