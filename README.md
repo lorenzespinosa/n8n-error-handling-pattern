@@ -70,3 +70,24 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md). All contributions require the pre-subm
 ## License
 
 [MIT](./LICENSE) © 2024 Lorenz Espinosa
+
+---
+
+## Quick Start
+
+```bash
+# Clone and explore
+git clone https://github.com/lorenzespinosa/n8n-error-handling-pattern.git
+cd n8n-error-handling-pattern
+
+# Import any workflow into n8n
+# 1. Open n8n → Settings → Import from file
+# 2. Select a JSON from workflows/
+# 3. Configure credential placeholders
+# 4. Test with matching payloads from payloads/
+```
+
+## Related Projects
+
+- [n8n-legal-ops-templates](https://github.com/lorenzespinosa/n8n-legal-ops-templates) — Law firm workflow templates using these error handling patterns
+- [n8n-ai-agent-delegator](https://github.com/lorenzespinosa/n8n-ai-agent-delegator) — Multi-agent AI system using these error handling patterns
