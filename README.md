@@ -41,7 +41,11 @@ flowchart TD
 
 | File | Pattern | Description |
 |------|---------|-------------|
-| *(coming in v0.2.0)* | — | — |
+| `retry-with-backoff.json` | Retry + Backoff | 3 retries with exponential delay (1s/2s/4s) |
+| `dead-letter-queue.json` | Dead-Letter Queue | Failed items logged for manual review |
+| `fallback-path.json` | Fallback Path | Primary → secondary → cached default |
+| `audit-logging.json` | Audit Logging | PII-masked execution logs |
+| `production-error-handler.json` | Full System | Combines all patterns via sub-workflows |
 
 ## Sample Payloads
 

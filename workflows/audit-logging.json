@@ -80,7 +80,7 @@
       "id": "d4e5f6a7-4444-4000-8000-000000000004",
       "name": "Write Audit Log",
       "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 1,
+      "typeVersion": 4,
       "position": [1000, 300],
       "parameters": {
         "operation": "appendOrUpdate",
