@@ -60,7 +60,7 @@
 
 **Make-specific notes:**
 - Make's built-in execution history provides some audit trail, but it's not PII-masked
-- For compliance, you need the explicit audit logging scenario with PII masking
+- For sensitive data, review which fields may be logged, configure access and retention, and test any masking against your own data; the example handles only selected patterns.
 
 ---
 

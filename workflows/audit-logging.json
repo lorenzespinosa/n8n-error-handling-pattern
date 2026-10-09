@@ -107,7 +107,7 @@
       "typeVersion": 1,
       "position": [200, 50],
       "parameters": {
-        "content": "## Audit Logging with PII Masking\n\n**Purpose:** Log every workflow execution with masked PII for compliance and debugging.\n\n**PII Masking Rules:**\n- **Email:** `john@example.com` → `***@***.com`\n- **Phone:** `(407) 555-1234` → `***-***-1234` (keeps last 4)\n- **SSN:** `123-45-6789` → `***-**-6789` (keeps last 4)\n- **DOB:** `1990-05-15` → `****-**-**`\n- Recursively processes nested objects and arrays\n\n**Audit Record Fields:**\n- `id`: AUD-YYYYMMDD-NNN\n- `timestamp`: ISO 8601\n- `source`: workflow name from body or header\n- `execution_id`: n8n execution ID\n- `action`: what was performed\n- `masked_payload`: sanitized data\n\n**Setup:** Connect Google Sheets credentials and configure the spreadsheet.",
+        "content": "## Audit Logging (example)\n\n**Purpose:** Record selected workflow events for review. The Code node masks common email and US-phone strings and some values under SSN/DOB field names. It does not remove every sensitive value or establish compliance; review data, access and retention before use.\n\n**Flow:** Webhook → example masking → metadata → Google Sheets record. No alert node ships in this workflow.\n\n**Setup:** Configure Google Sheets credentials and a test spreadsheet, then check actual outputs with fictional inputs before use.",
         "width": 420,
         "height": 350
       }

@@ -51,7 +51,7 @@
 
 ## Audit Logging
 
-**Zapier approach:** A reusable Zap called via webhook that logs execution data with PII masking.
+**Zapier approach:** A conceptual Zap that logs execution data after applying example masking to common email and phone patterns; review coverage and access before use.
 
 **Logic:**
 1. Webhook trigger (Catch Hook) receives execution data

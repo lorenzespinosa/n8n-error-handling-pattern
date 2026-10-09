@@ -1,8 +1,8 @@
 # n8n-error-handling-pattern
 
-> Production-grade error handling patterns for n8n workflows — retry with exponential backoff, dead-letter queue, fallback paths, and audit logging. Importable sub-workflows, zero hardcoded credentials.
+> Example n8n workflow files for retry, fallback paths, dead-letter review and event logging. Configure credentials and test in your own environment before use.
 
-**Tested on:** n8n v1.x.x | **License:** MIT | **Status:** Active
+**Format:** n8n workflow JSON | **License:** MIT | **Status:** Example code
 
 ---
 
@@ -10,10 +10,10 @@
 
 This repo provides reusable error handling sub-workflows you can import into any n8n instance:
 
-- **Retry with exponential backoff** — 3 retries with configurable delay multiplier
-- **Dead-letter queue** — failed items logged to Airtable for manual review
+- **Retry with exponential backoff** — 3 retries with an example exponential delay
+- **Dead-letter queue** — failed items sent to an example Google Sheets review queue
 - **Fallback path** — graceful degradation when a downstream service is unavailable
-- **Audit logging** — PII-masked execution logs with timestamp and source tracking
+- **Audit logging** — Example event records; review sensitive fields and access before use
 
 ## Architecture
 
@@ -44,12 +44,12 @@ flowchart TD
 | `retry-with-backoff.json` | Retry + Backoff | 3 retries with exponential delay (1s/2s/4s) |
 | `dead-letter-queue.json` | Dead-Letter Queue | Failed items logged for manual review |
 | `fallback-path.json` | Fallback Path | Primary → secondary → cached default |
-| `audit-logging.json` | Audit Logging | PII-masked execution logs |
-| `production-error-handler.json` | Full System | Combines all patterns via sub-workflows |
+| `audit-logging.json` | Audit Logging | Example event records requiring review |
+| `production-error-handler.json` | Combined example | Combines the pattern files via sub-workflows |
 
 ## Sample Payloads
 
-See `payloads/` directory. Every workflow has a `success.json` and `failure.json` sample.
+See `payloads/` for example request and record shapes (audit entry, dead-letter record, fallback response and retry outcomes).
 
 ## Error Handling
 
@@ -62,10 +62,6 @@ Every workflow in this repo IS an error handling pattern. See `docs/architecture
 | n8n | Full workflow JSON (importable) |
 | Make | `docs/make-equivalent.md` — conceptual rebuild guide |
 | Zapier | `docs/zapier-equivalent.md` — conceptual rebuild guide |
-
-## Business Impact
-
-*(Coming in v0.2.0 — will include: time saved on debugging, silent failure reduction metrics)*
 
 ## Contributing
 
@@ -93,16 +89,13 @@ cd n8n-error-handling-pattern
 
 ## Related Projects
 
-- [n8n-legal-ops-templates](https://github.com/lorenzespinosa/n8n-legal-ops-templates) — Law firm workflow templates using these error handling patterns
-- [n8n-ai-agent-delegator](https://github.com/lorenzespinosa/n8n-ai-agent-delegator) — Multi-agent AI system using these error handling patterns
+- [n8n-ai-agent-delegator](https://github.com/lorenzespinosa/n8n-ai-agent-delegator) — Related n8n example workflows; not a bundled integration
 
 ---
 
 <!-- hire-cta -->
-## 👋 Built by Lorenz Espinosa
+## About Lorenz
 
-I design and ship production automation for ops-heavy businesses — webhook-driven, AI-powered systems with validation, retries, and audit logging baked in. **50+ processes automated · $800K+ saved.**
+I'm Lorenz Espinosa, an IT systems and automation consultant. This repository is public example material, not a record of client systems or results.
 
-**Want something like this built for your team?**
-
-[![See more work](https://img.shields.io/badge/See%20more%20work-0d1117?style=flat-square&logo=github&logoColor=7aa2f7)](https://github.com/lorenzespinosa) &nbsp;[![Start a project](https://img.shields.io/badge/Start%20a%20project%20%E2%86%92-0d1117?style=for-the-badge&logo=gmail&logoColor=9ece6a)](mailto:renzespinosa13@gmail.com?subject=Automation%20project%20inquiry&body=Hi%20Lorenz%2C%0A%0AGoal%3A%0ASystems%2Ftools%20involved%3A%0ATimeline%3A%0A) &nbsp;[![Connect on LinkedIn](https://img.shields.io/badge/Connect-0d1117?style=flat-square&logo=linkedin&logoColor=7aa2f7)](https://www.linkedin.com/in/lorenz-leslie-espinosa/)
+For a general inquiry, please leave out client names, records and confidential details: [Email](mailto:renzespinosa13@gmail.com) · [Portfolio](https://lorenzespinosa.github.io/) · [LinkedIn](https://www.linkedin.com/in/lorenz-leslie-espinosa/).

@@ -6,6 +6,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Clarified that the workflows are examples, corrected queue/masking descriptions, and removed unsupported production and client-result claims.
+
 ## [0.1.0] - 2024-08-15
 
 ### Added
