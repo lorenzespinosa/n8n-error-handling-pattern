@@ -69,7 +69,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md). All contributions require the pre-subm
 
 ## License
 
-[MIT](./LICENSE) © 2024 Lorenz Espinosa
+[MIT](./LICENSE) © 2025 Lorenz Espinosa
 
 ---
 
